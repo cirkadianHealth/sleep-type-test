@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>나의 수면 유형 테스트</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#f7f6f3; --white:#fff; --text:#1a1a2e; --text2:#44445a; --text3:#9898aa;
+  --border:#e8e6f0;
+  --accent:#1a1a1a; --accent-l:#f0f0f0;
+  --teal:#5bbfb5; --teal-l:#e0f5f3;
+  --ora:#f4845f; --ora-l:#fef0eb;
+  --pink:#e879a0; --pink-l:#fde8f1;
+}
+body { background:var(--bg); color:var(--text); font-family:'Noto Sans KR',sans-serif; min-height:100vh; }
+
+/* screens */
+.screen { display:none; min-height:100vh; flex-direction:column; align-items:center; padding-bottom:60px; }
+.screen.active { display:flex; animation:fadeUp .4s ease; }
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── INTRO ── */
+#screen-intro {
+  justify-content:center; padding:60px 24px;
+  background:linear-gradient(155deg,#f2f2f2 0%,#ebebeb 45%,#f5f5f5 100%);
+}
+.intro-inner { max-width:400px; width:100%; text-align:center; }
+.intro-brand {
+  font-size:11px; letter-spacing:3px; color:var(--accent); font-weight:700;
+  margin-bottom:28px; display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.intro-brand::before,.intro-brand::after{content:'';flex:1;height:1px;background:var(--accent);opacity:.25;}
+.intro-emoji { font-size:60px; display:block; margin-bottom:18px; }
+.intro-title {
+  font-family:'Noto Serif KR',serif; font-size:clamp(26px,7vw,36px); font-weight:900;
+  line-height:1.35; color:var(--text); margin-bottom:12px;
+}
+.intro-title em { font-style:normal; color:var(--accent); }
+.intro-desc { font-size:14px; color:var(--text2); line-height:1.85; margin-bottom:28px; }
+.intro-tags { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:32px; }
+.i-tag {
+  padding:6px 16px; border-radius:20px; font-size:12px; font-weight:600;
+  background:white; border:1.5px solid;
+}
+.i-tag.r{border-color:#aaaaaa;color:#1a1a1a}
+.i-tag.e{border-color:#aaaaaa;color:#1a1a1a}
+.i-tag.d{border-color:#aaaaaa;color:#1a1a1a}
+.i-tag.b{border-color:#aaaaaa;color:#1a1a1a}
+.btn-start {
+  width:100%; padding:18px; border-radius:16px; background:var(--accent); color:white;
+  font-size:16px; font-weight:700; font-family:inherit; border:none; cursor:pointer;
+  box-shadow:0 8px 24px rgba(0,0,0,0.18); transition:all .2s;
+}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,0.25)}
+.intro-note { font-size:11px; color:var(--text3); margin-top:12px; }
+
+/* ── QUIZ ── */
+#screen-quiz { background:var(--bg); justify-content:flex-start; padding-top:0; }
+.quiz-header {
+  width:100%; background:white; padding:18px 20px 0;
+  position:sticky; top:0; z-index:10; border-bottom:1px solid var(--border);
+}
+.qh-inner { max-width:540px; margin:0 auto; }
+.qh-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.qh-logo { font-size:11px; font-weight:700; color:var(--accent); letter-spacing:2px; }
+.qh-step { font-size:12px; color:var(--text3); }
+.prog-segs { display:flex; gap:4px; padding-bottom:14px; }
+.prog-seg { flex:1; height:4px; border-radius:2px; background:#ebebeb; transition:background .3s; }
+.prog-seg.done{background:var(--accent)}
+.prog-seg.active{background:linear-gradient(90deg,var(--accent),#888888)}
+
+.quiz-body { max-width:540px; width:100%; padding:20px 16px 120px; }
+
+.axis-chip {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 14px; border-radius:20px; font-size:12px; font-weight:700;
+  margin-bottom:8px;
+}
+.axis-chip.R{background:var(--accent-l);color:var(--accent)}
+.axis-chip.E{background:#f0f0f0;color:#1a1a1a}
+.axis-chip.D{background:#f0f0f0;color:#1a1a1a}
+.axis-chip.B{background:#f0f0f0;color:#1a1a1a}
+
+.axis-desc{font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.65;}
+
+/* q card */
+.qc {
+  background:white; border-radius:16px; margin-bottom:10px;
+  border:1.5px solid var(--border); transition:border-color .2s;
+}
+.qc.answered{border-color:#aaaaaa;}
+.qc-top{padding:18px 18px 12px;}
+.qc-num{font-size:10px;color:var(--text3);font-weight:700;letter-spacing:1px;margin-bottom:5px;}
+.qc-txt{font-size:14px;line-height:1.75;color:var(--text);font-family:'Noto Serif KR',serif;}
+.qc-likert{padding:0 18px 16px;}
+.likert-ends{display:flex;justify-content:space-between;margin-bottom:8px;}
+.l-end{font-size:11px;color:var(--text3);font-weight:500;}
+.l-row{display:flex;align-items:center;}
+.l-line{flex:1;height:1.5px;background:var(--border);}
+.l-btn {
+  border-radius:50%; border:2px solid #ccc8e8; background:white;
+  cursor:pointer; flex-shrink:0; position:relative;
+  transition:all .15s; display:flex; align-items:center; justify-content:center;
+}
+.l-btn:hover{border-color:var(--accent);background:var(--accent-l);transform:scale(1.12);}
+.l-btn.sel{border-color:var(--accent);background:var(--accent);}
+.l-btn.sel::after{content:'';display:block;border-radius:50%;background:white;width:38%;height:38%;}
+
+/* nav bar */
+.qnav {
+  position:fixed; bottom:0; left:0; width:100%;
+  background:white; border-top:1px solid var(--border);
+  padding:10px 16px env(safe-area-inset-bottom,16px); z-index:20;
+}
+.qnav-inner{max-width:540px;margin:0 auto;display:flex;gap:10px;}
+.btn-prev {
+  padding:14px 18px; border-radius:12px; font-size:14px; font-weight:600;
+  border:1.5px solid var(--border); background:white; color:var(--text2);
+  cursor:pointer; font-family:inherit; transition:all .2s; flex-shrink:0;
+}
+.btn-prev:disabled{opacity:.3;cursor:not-allowed;}
+.btn-prev:not(:disabled):hover{border-color:var(--accent);color:var(--accent);}
+.btn-next {
+  flex:1; padding:14px; border-radius:12px; font-size:15px; font-weight:700;
+  border:none; background:#888888; color:white; cursor:pointer; font-family:inherit;
+  pointer-events:none; transition:all .2s;
+}
+.btn-next.on{background:var(--accent);pointer-events:all;box-shadow:0 4px 16px rgba(0,0,0,0.18);}
+.btn-next.on:hover{background:#000000;}
+
+/* ── LOADING ── */
+#screen-loading {
+  background:linear-gradient(155deg,#f0f0f0,#e8e8e8);
+  justify-content:center; align-items:center; padding:40px;
+}
+.load-spin {
+  width:52px;height:52px;border-radius:50%;margin:0 auto 18px;
+  border:3px solid #cccccc;border-top-color:var(--accent);
+  animation:spin .85s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-txt{font-size:15px;color:var(--text2);font-weight:500;text-align:center;}
+.load-sub{font-size:12px;color:var(--text3);text-align:center;margin-top:4px;}
+
+/* ── RESULT ── */
+#screen-result{background:var(--bg);align-items:center;padding:0 0 60px;}
+
+.r-hero {
+  width:100%;text-align:center;
+  padding:52px 24px 40px;
+  background:linear-gradient(155deg,#f2f2f2 0%,#ebebeb 55%,#f5f5f5 100%);
+  position:relative;overflow:hidden;
+}
+.r-hero::after{
+  content:'';position:absolute;bottom:-1px;left:0;right:0;
+  height:28px;background:var(--bg);border-radius:28px 28px 0 0;
+}
+.r-label{font-size:10px;letter-spacing:3px;color:var(--accent);font-weight:700;margin-bottom:16px;}
+.r-emo {
+  width:96px;height:96px;border-radius:26px;margin:0 auto 14px;
+  background:white;display:flex;align-items:center;justify-content:center;
+  font-size:50px;box-shadow:0 8px 32px rgba(0,0,0,0.08);
+}
+.r-badges{display:flex;gap:6px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;}
+.r-badge{
+  padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;
+  background:white;border:1.5px solid;
+}
+.r-name{
+  font-family:'Noto Serif KR',serif;font-size:clamp(28px,8vw,38px);font-weight:900;
+  color:var(--text);margin-bottom:6px;
+}
+.r-sub{font-size:14px;color:var(--text2);line-height:1.6;}
+
+.r-wrap{max-width:480px;width:100%;padding:0 14px;}
+
+.r-card{
+  background:white;border-radius:20px;padding:22px;
+  margin-bottom:12px;border:1.5px solid var(--border);
+}
+.r-card-lbl{
+  font-size:10px;letter-spacing:2px;color:var(--text3);
+  font-weight:700;text-transform:uppercase;margin-bottom:16px;display:block;
+}
+
+/* axis bars */
+.ab-list{display:flex;flex-direction:column;gap:16px;}
+.ab-name-row{text-align:center;margin-bottom:3px;}
+.ab-ends{display:flex;justify-content:space-between;margin-bottom:5px;}
+.ab-end{font-size:11px;color:var(--text3);}
+.ab-track{height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden;}
+.ab-fill{height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+.ab-pcts{display:flex;justify-content:space-between;margin-top:3px;}
+.ab-pcts span{font-size:11px;font-weight:700;}
+
+/* desc */
+.r-desc{font-size:14px;line-height:1.9;color:var(--text2);}
+
+/* wave */
+.wave-labels{display:flex;justify-content:space-between;margin-top:8px;}
+.wave-lbl{font-size:11px;color:var(--text3);}
+
+/* tips */
+.tip-list{display:flex;flex-direction:column;gap:12px;}
+.tip-row{display:flex;gap:12px;align-items:flex-start;}
+.tip-ico{
+  width:30px;height:30px;border-radius:9px;flex-shrink:0;
+  background:var(--accent-l);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+}
+.tip-txt{font-size:13px;line-height:1.75;color:var(--text2);padding-top:5px;}
+
+/* share */
+.share-row{display:flex;gap:10px;margin-top:4px;}
+.btn-sh{
+  flex:1;padding:14px;border-radius:12px;font-size:14px;font-weight:700;
+  border:none;cursor:pointer;font-family:inherit;transition:all .2s;
+}
+.btn-sh.main{background:var(--accent);color:white;box-shadow:0 4px 16px rgba(0,0,0,0.18);}
+.btn-sh.main:hover{background:#000000;}
+.btn-sh.sub{background:white;color:var(--text2);border:1.5px solid var(--border);}
+.btn-sh.sub:hover{border-color:var(--accent);color:var(--accent);}
+
+.r-footer{font-size:11px;color:var(--text3);text-align:center;margin-top:22px;line-height:1.7;}
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div class="screen active" id="screen-intro">
+  <div class="intro-inner">
+    <div class="intro-brand">수면 유형 테스트</div>
+    <span class="intro-emoji">🌙</span>
+    <h1 class="intro-title">나의 수면 유형,<br><em>무엇인가요?</em></h1>
+    <p class="intro-desc">수면 임상 데이터를 기반으로 설계된<br>4축 수면 유형 분석 테스트입니다.<br>총 20문항 · 약 3분 소요</p>
+    <div class="intro-tags">
+      <span class="i-tag r">🌙 수면 리듬</span>
+      <span class="i-tag e">⚡ 수면 효율</span>
+      <span class="i-tag d">☀️ 주간 기능</span>
+      <span class="i-tag b">🚧 수면 장벽</span>
+    </div>
+    <button class="btn-start" onclick="startQuiz()">테스트 시작하기 →</button>
+    <p class="intro-note">본 테스트는 의학적 진단을 대체하지 않습니다.</p>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="screen" id="screen-quiz">
+  <div class="quiz-header">
+    <div class="qh-inner">
+      <div class="qh-row">
+        <span class="qh-logo">SLEEP TYPE</span>
+        <span class="qh-step" id="qh-step">1 / 4</span>
+      </div>
+      <div class="prog-segs" id="prog-segs">
+        <div class="prog-seg active"></div>
+        <div class="prog-seg"></div>
+        <div class="prog-seg"></div>
+        <div class="prog-seg"></div>
+      </div>
+    </div>
+  </div>
+  <div class="quiz-body" id="quiz-body"></div>
+  <div class="qnav">
+    <div class="qnav-inner">
+      <button class="btn-prev" id="btn-prev" onclick="prevPage()">← 이전</button>
+      <button class="btn-next" id="btn-next" onclick="nextPage()">다음 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="screen" id="screen-loading">
+  <div class="load-spin"></div>
+  <p class="load-txt">수면 유형 분석 중</p>
+  <p class="load-sub">잠시만 기다려 주세요</p>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="screen-result">
+  <div class="r-hero" id="r-hero">
+    <div class="r-label">SLEEP TYPE RESULT</div>
+    <div class="r-emo" id="r-emo"></div>
+    <div class="r-badges" id="r-badges"></div>
+    <h2 class="r-name" id="r-name"></h2>
+    <p class="r-sub" id="r-sub"></p>
+  </div>
+
+  <div class="r-wrap">
+    <div class="r-card" style="margin-top:20px">
+      <span class="r-card-lbl">4축 수면 프로필</span>
+      <canvas id="c-radar" width="260" height="220" style="display:block;margin:0 auto"></canvas>
+    </div>
+
+    <div class="r-card">
+      <span class="r-card-lbl">축별 상세 분석</span>
+      <div class="ab-list" id="ab-list"></div>
+    </div>
+
+    <div class="r-card">
+      <span class="r-card-lbl">유형 설명</span>
+      <p class="r-desc" id="r-desc"></p>
+    </div>
+
+    <div class="r-card">
+      <span class="r-card-lbl">예상 수면 흐름</span>
+      <canvas id="c-wave" width="400" height="88" style="width:100%;display:block"></canvas>
+      <div class="wave-labels" id="wave-labels"></div>
+    </div>
+
+    <div class="r-card">
+      <span class="r-card-lbl">추천 개선 방향</span>
+      <div class="tip-list" id="tip-list"></div>
+    </div>
+
+    <div class="share-row">
+      <button class="btn-sh sub" onclick="retry()">↩ 다시하기</button>
+      <button class="btn-sh main" onclick="copyLink()">🔗 결과 공유</button>
+    </div>
+    <p class="r-footer">본 결과는 수면 임상 데이터 기반으로 산출되었습니다.<br>정확한 진단은 수면 전문 클리닉을 방문해 주세요.</p>
+  </div>
+</div>
+
+<script>
+/* ─── DATA ─── */
+const QS = [
+  {ax:'R',t:'하루의 첫 활동이 9시 이전보다 13시 이후에 본격적으로 시작되는 편이다.'},
+  {ax:'R',t:'해야 할 일을 시작하기 전까지 준비 시간이 길어져, 실제 시작 시간이 자주 늦어진다.'},
+  {ax:'R',t:'22시 이후가 되면 오히려 머리가 맑아지거나 하고 싶은 일이 많아지는 편이다.'},
+  {ax:'R',t:'쉬는 날에는 평일보다 취침·기상 시간이 2시간 이상 뒤로 밀리는 편이다.'},
+  {ax:'R',t:'잠들 시간이 가까워져도 "이것만 하고 자야지" 하며 할 일을 더 붙잡는 편이다.'},
+  {ax:'E',t:'침대에 누운 뒤 30분 이상 깨어 있는 날이 자주 있다.'},
+  {ax:'E',t:'자는 도중 화장실, 꿈, 소리, 뒤척임 등으로 잠이 끊기는 일이 잦다.'},
+  {ax:'E',t:'새벽에 한 번 깨면 20분 이상 다시 잠들지 못하는 경우가 있다.'},
+  {ax:'E',t:'방 안의 밝기, 소음, 온도, 침구 상태가 조금만 달라져도 수면이 흔들리는 편이다.'},
+  {ax:'E',t:'총 수면시간은 부족하지 않아도, 아침에 깊게 잤다는 느낌이 약한 편이다.'},
+  {ax:'D',t:'기상 후 1시간 안에는 몸이 무겁고 움직임이 느린 편이다.'},
+  {ax:'D',t:'점심 식사 이후에는 집중력이나 에너지가 눈에 띄게 떨어지는 편이다.'},
+  {ax:'D',t:'전날 충분히 잤다고 생각해도, 하루 중 피로가 다시 쉽게 올라오는 편이다.'},
+  {ax:'D',t:'수업, 회의, 이동, 독서처럼 가만히 있는 상황에서 졸음이 쉽게 온다.'},
+  {ax:'D',t:'졸리거나 피곤하면 할 일을 미루게 되는 편이다.'},
+  {ax:'B',t:'잠들기 전 오늘 있었던 일이나 내일 해야 할 일이 계속 떠오르는 편이다.'},
+  {ax:'B',t:'23시 이후에도 휴대폰, 영상, SNS, 업무, 과제를 멈추지 못해 취침 시간이 늦어진다.'},
+  {ax:'B',t:'18시 이후 카페인, 음주, 야식 중 하나라도 있으면 잠드는 시간이나 다음 날 컨디션이 달라지는 편이다.'},
+  {ax:'B',t:'잠들기 위해 조명, 소리, 자세, 이불, 루틴 같은 조건이 맞아야 안심되는 편이다.'},
+  {ax:'B',t:'몸은 피곤한데도 긴장이 풀리지 않아 잠으로 넘어가는 데 시간이 걸리는 편이다.'},
+];
+
+const AXIS_META = {
+  R:{name:'수면 리듬',low:'아침형 (E)',high:'저녁형 (L)',color:'#1a1a1a',light:'#f0f0f0'},
+  E:{name:'수면 효율',low:'안정형 (S)',high:'분절형 (F)',color:'#1a1a1a',light:'#f0f0f0'},
+  D:{name:'주간 기능',low:'각성형 (A)',high:'졸림형 (D)',color:'#1a1a1a',light:'#f0f0f0'},
+  B:{name:'수면 장벽',low:'진입 용이 (C)',high:'진입 어려움 (B)',color:'#1a1a1a',light:'#f0f0f0'},
+};
+
+const PAGE_AXIS = ['R','E','D','B'];
+const PAGE_TITLE = {
+  R:'당신은 아침형인가요, 저녁형인가요?',
+  E:'자는 동안 얼마나 깊이, 꾸준히 자나요?',
+  D:'낮 동안 에너지와 각성이 충분한가요?',
+  B:'잠들기 어렵게 만드는 요인이 있나요?',
+};
+
+const TYPES = {
+  ESAC:{name:'알람 프리형',e:'🌅',sub:'자연스러운 수면의 달인',desc:'이른 기상과 안정적인 수면이 조화를 이루며, 주간 각성이 높고 잠들기도 쉬운 이상적인 수면 패턴입니다. 당신의 생체 시계는 꽤 잘 설정되어 있어요.',tips:['현재의 수면 루틴을 꾸준히 유지하세요.','취침 30분 전 가벼운 스트레칭을 추가해보세요.','주말에도 평일과 비슷한 시간대를 유지하세요.','야간 약속을 줄여 리듬을 지켜주세요.']},
+  ESAB:{name:'잠들기 전 과열형',e:'🔥',sub:'몸은 자야 하는데 머릿속이 바쁜 유형',desc:'수면 리듬과 효율은 양호하지만 잠자리 전 과도한 자극과 생각이 입면을 방해합니다. 하루 마무리 루틴을 개선하면 크게 달라질 수 있어요.',tips:['취침 1시간 전 "디지털 선셋" 루틴을 만들어보세요.','취침 전 3가지 긍정적인 일을 저널링하세요.','메모장에 내일 할 일을 적어 머리를 비우세요.','저녁 카페인·야식을 18시 이전으로 앞당기세요.']},
+  ESDC:{name:'자도 피곤형',e:'🌫️',sub:'충분히 잤는데 왜 피곤할까',desc:'규칙적인 수면에도 낮 동안 피로가 높은 유형입니다. 수면의 질 자체나 스트레스, 영양 상태를 점검해볼 필요가 있어요.',tips:['수면 중 코골이·무호흡 여부를 점검하세요.','철분, 비타민 D 수치를 확인해보세요.','낮잠은 20분 이내, 15시 이전으로 제한하세요.','오전 햇빛 노출로 생체 리듬을 강화하세요.']},
+  ESDB:{name:'아침 저전력형',e:'🔋',sub:'아침형인데 에너지가 없는 역설',desc:'이른 기상 패턴이지만 주간 피로와 잠자리 장벽이 공존합니다. 만성 수면 부채가 쌓였을 수 있어요.',tips:['취침 시간을 30분 앞당겨 수면 시간을 확보하세요.','잠들기 전 루틴으로 신체에 수면 신호를 주세요.','점심 후 15~20분 내 짧은 낮잠을 고려하세요.','스트레스 관리와 규칙적인 유산소 운동을 병행하세요.']},
+  EFAC:{name:'얕잠 적응형',e:'🌊',sub:'자주 깨지만 크게 신경 쓰지 않는 유형',desc:'수면 분절 경향이 있지만 주간 기능은 유지되고 잠들기는 쉬운 편입니다. 수면 효율 개선에 집중하면 삶의 질이 올라가요.',tips:['암막 커튼·백색소음으로 수면 환경을 최적화하세요.','저녁 음주는 분절 수면을 악화시킵니다.','취침 전 수분 섭취를 줄여 야간 각성을 줄이세요.','규칙적인 취침·기상 시간으로 수면 압력을 높이세요.']},
+  EFAB:{name:'예민한 잠자리형',e:'🦋',sub:'잠드는 것도 자는 것도 쉽지 않은 유형',desc:'수면 분절이 잦고 입면 장벽도 높습니다. 수면에 대한 과도한 각성이 악순환을 만들어요. CBT-I 기반 접근이 효과적입니다.',tips:['"자야 한다"는 압박을 줄이는 역설적 의도 기법을 시도하세요.','침실은 수면 전용 공간으로만 사용하세요.','침실 온도를 18~20°C로 유지하세요.','수면 전문가와 CBT-I 상담을 고려해보세요.']},
+  EFDC:{name:'깨참 피로형',e:'⚡',sub:'자주 깨고 낮에도 힘든 이중고',desc:'야간 분절과 주간 피로가 함께 나타납니다. 수면 무호흡 등 기저 원인 확인이 필요할 수 있어요.',tips:['파트너에게 코골이·무호흡 여부를 확인해달라고 부탁하세요.','규칙적인 유산소 운동이 수면 깊이 개선에 효과적입니다.','낮잠 의존도를 줄여 야간 수면 압력을 유지하세요.','수면 전문 클리닉 방문을 권장합니다.']},
+  EFDB:{name:'기상 방전형',e:'😵',sub:'일어나는 순간부터 이미 피곤한 유형',desc:'분절 수면, 주간 졸림, 입면 장벽이 모두 높은 복합 어려움입니다. 전문적 접근이 필요한 시점일 수 있어요.',tips:['수면 클리닉에서 종합 검사를 받아보세요.','먼저 취침·기상 시간 고정부터 시작하세요.','스마트폰을 침실 밖에 두고 환경을 정비하세요.','명상·호흡법 등 이완 기법을 꾸준히 연습하세요.']},
+  LSAC:{name:'늦잠 안정형',e:'🌙',sub:'늦게 자도 잘 자는 저녁형 인간',desc:'저녁형 리듬이지만 수면 효율·주간 기능·입면 모두 양호합니다. 사회적 시간표와의 불일치만 해결하면 최적의 수면을 누릴 수 있어요.',tips:['업무·학업 시작 시간을 리듬에 맞게 조정해보세요.','강한 아침 빛 노출로 위상을 점진적으로 앞당기세요.','주말 늦잠을 30분 이내로 제한하세요.','저녁형임을 인정하고 무리한 이른 취침 시도를 줄이세요.']},
+  LSAB:{name:'새벽 과열형',e:'🌃',sub:'밤이 깊어야 진짜 시작되는 유형',desc:'저녁형이면서 밤 활동성이 높고 입면 장벽이 존재합니다. 수면 자체는 안정적이나 사회적 피로가 쌓일 수 있어요.',tips:['낮 활동을 더 풍성하게 만들어 밤 활동 욕구를 줄이세요.','빛 치료(Light Therapy)로 리듬 조정을 고려하세요.','"wind-down" 저녁 루틴을 실천하세요.','23시 이후 화면에 블루라이트 차단 모드를 사용하세요.']},
+  LSDC:{name:'늦은 피로형',e:'🕯️',sub:'늦게 자고 낮에도 피곤한 저녁형',desc:'저녁형 리듬과 주간 피로가 겹칩니다. 사회적 시간표와의 불일치가 만성 피로를 유발하고 있을 가능성이 높아요.',tips:['매주 15분씩 취침 시간을 앞당기는 점진적 조정을 해보세요.','오전 최소 30분 햇빛 노출로 리듬을 재설정하세요.','낮잠은 15시 이전, 20분 이내로 제한하세요.','카페인 섭취를 14시 이전으로 제한하세요.']},
+  LSDB:{name:'야간 과부하형',e:'🌀',sub:'밤에는 바쁘고 낮에는 무거운 유형',desc:'저녁형 + 주간 피로 + 입면 장벽이 복합된 유형입니다. 야간 과자극과 낮 여파가 반복되는 패턴이에요.',tips:['야간 "디지털 데톡스" 루틴을 만들어보세요.','저녁 이후 할 일 목록을 적고 머릿속을 비우는 연습을 하세요.','규칙적인 운동으로 수면 압력과 낮 에너지를 개선하세요.','수면 일지를 2주간 작성해 패턴을 파악하세요.']},
+  LFAC:{name:'선잠 적응형',e:'🍃',sub:'늦게 자고 자주 깨지만 그럭저럭 버티는 유형',desc:'저녁형에 분절 수면이 있지만 낮 기능은 유지되고 입면은 쉽습니다. 수면 효율만 개선해도 에너지가 크게 달라져요.',tips:['수면 환경 최적화로 분절 수면을 줄이세요.','알코올·카페인 영향을 1주일간 추적해보세요.','취침 전 스트레칭·이완 운동을 시도하세요.','수면 시간을 30분 앞당기는 것부터 시작하세요.']},
+  LFAB:{name:'새벽 각성형',e:'🎭',sub:'늦게 자고 자주 깨고 잠들기도 어려운 유형',desc:'수면 여러 단계에서 어려움이 있으며 저녁형 리듬이 모든 문제를 악화시킵니다. 수면 불안이 악순환을 만들 수 있어요.',tips:['CBT-I 프로그램에 참여해보세요.','수면 제한 요법으로 수면 효율을 먼저 높이세요.','침실을 수면 전용 공간으로 재설정하세요.','수면 전문가 상담을 적극적으로 고려하세요.']},
+  LFDC:{name:'선잠 피로형',e:'🌁',sub:'늦게 자고 자주 깨고 낮에도 힘든 유형',desc:'저녁형 리듬, 수면 분절, 주간 피로가 겹쳐 있습니다. 수면의 질·양 모두 개선과 생체 리듬 재조정이 핵심 과제예요.',tips:['수면다원검사를 고려해보세요.','빛 치료와 운동을 병행해 리듬을 조정하세요.','낮잠은 전략적으로 활용하되 야간 수면을 방해하지 않도록 하세요.','수면 건강을 최우선 과제로 삼으세요.']},
+  LFDB:{name:'절전모드형',e:'🌑',sub:'모든 수면 지표가 도전적인 유형',desc:'리듬, 효율, 주간 기능, 입면 모두 어려움이 있습니다. 혼자 개선하기보다 전문가의 도움이 가장 효과적인 시점이에요.',tips:['수면 전문 클리닉 방문을 강력히 권장합니다.','취침·기상 시간 고정 딱 하나만 오늘부터 시작하세요.','스마트폰을 침실 밖에 두는 것부터 시작하세요.','수면 문제는 의지가 아닌 의학적 문제입니다.']},
+};
+
+/* ─── STATE ─── */
+let page = 0;
+let answers = new Array(20).fill(null);
+
+/* ─── SCREENS ─── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.style.display='none';});
+  const el=document.getElementById('screen-'+id);
+  el.style.display='flex';
+  setTimeout(()=>el.classList.add('active'),10);
+  window.scrollTo(0,0);
+}
+function startQuiz(){page=0;showScreen('quiz');renderPage();}
+function retry(){page=0;answers=new Array(20).fill(null);showScreen('intro');}
+
+/* ─── QUIZ ─── */
+function renderPage() {
+  const ax = PAGE_AXIS[page];
+  const s = page*5;
+  // progress
+  document.getElementById('qh-step').textContent=`${page+1} / 4`;
+  document.querySelectorAll('.prog-seg').forEach((el,i)=>{
+    el.className='prog-seg'+(i<page?' done':i===page?' active':'');
+  });
+  // label colors
+  const chipClass = ax;
+  const chipLabel = {R:'🌙 수면 리듬',E:'⚡ 수면 효율',D:'☀️ 주간 기능',B:'🚧 수면 장벽'}[ax];
+
+  let html=`<div class="axis-chip ${chipClass}">${chipLabel}</div>
+  <p class="axis-desc">${PAGE_TITLE[ax]}</p>`;
+
+  for(let i=s;i<s+5;i++){
+    html+=`<div class="qc ${answers[i]!==null?'answered':''}" id="qc-${i}">
+      <div class="qc-top">
+        <div class="qc-num">Q${i+1}</div>
+        <p class="qc-txt">${QS[i].t}</p>
+      </div>
+      <div class="qc-likert">
+        <div class="likert-ends"><span class="l-end">그렇다</span><span class="l-end">그렇지 않다</span></div>
+        <div class="l-row">${circles(i,answers[i])}</div>
+      </div>
+    </div>`;
+  }
+  document.getElementById('quiz-body').innerHTML=html;
+  document.getElementById('btn-prev').disabled=page===0;
+  refreshNextBtn();
+}
+
+function circles(qi, sel) {
+  const sz=[48,40,34,28,24];
+  return [0,1,2,3,4].map(i=>{
+    const s=sz[i], selected=sel===i;
+    return (i>0?'<div class="l-line"></div>':'')+
+      `<button class="l-btn ${selected?'sel':''}" style="width:${s}px;height:${s}px" onclick="pick(${qi},${i})"></button>`;
+  }).join('');
+}
+
+function pick(qi, oi) {
+  answers[qi]=oi;
+  const card=document.getElementById('qc-'+qi);
+  if(card){
+    card.className='qc answered';
+    card.querySelector('.l-row').innerHTML=circles(qi,oi);
+  }
+  refreshNextBtn();
+  // auto scroll to next unanswered on same page
+  const s=page*5;
+  const next=Array.from({length:5},(_,k)=>s+k).find(k=>answers[k]===null);
+  if(next!==undefined){
+    const el=document.getElementById('qc-'+next);
+    if(el) setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'center'}),200);
+  }
+}
+
+function refreshNextBtn(){
+  const s=page*5;
+  const done=answers.slice(s,s+5).every(a=>a!==null);
+  const btn=document.getElementById('btn-next');
+  btn.classList.toggle('on',done);
+  btn.textContent=page===3?'결과 보기 →':'다음 →';
+}
+
+function nextPage(){
+  const s=page*5;
+  if(!answers.slice(s,s+5).every(a=>a!==null)) return;
+  if(page===3){calcResult();return;}
+  page++;renderPage();window.scrollTo({top:0,behavior:'smooth'});
+}
+function prevPage(){if(page===0)return;page--;renderPage();window.scrollTo({top:0,behavior:'smooth'});}
+
+/* ─── CALC ─── */
+function calcResult(){
+  showScreen('loading');
+  setTimeout(()=>{
+    const sc={R:0,E:0,D:0,B:0};
+    QS.forEach((q,i)=>{if(answers[i]!==null) sc[q.ax]+=(4-answers[i]);});
+    const code=(sc.R>=11?'L':'E')+(sc.E>=11?'F':'S')+(sc.D>=11?'D':'A')+(sc.B>=11?'B':'C');
+    const type=TYPES[code]||TYPES['LSAC'];
+    buildResult(type,code,sc);
+    showScreen('result');
+  },1600);
+}
+
+/* ─── RESULT RENDER ─── */
+function buildResult(type,code,sc){
+  document.getElementById('r-emo').textContent=type.e;
+  document.getElementById('r-name').textContent=type.name;
+  document.getElementById('r-sub').textContent=type.sub;
+  document.getElementById('r-desc').textContent=type.desc;
+
+  const bMeta=[
+    {ax:'R',t:sc.R>=11?'저녁형 (L)':'아침형 (E)',c:'#1a1a1a',bg:'#f0f0f0'},
+    {ax:'E',t:sc.E>=11?'분절형 (F)':'안정형 (S)',c:'#1a1a1a',bg:'#f0f0f0'},
+    {ax:'D',t:sc.D>=11?'졸림형 (D)':'각성형 (A)',c:'#1a1a1a',bg:'#f0f0f0'},
+    {ax:'B',t:sc.B>=11?'장벽 있음 (B)':'진입 용이 (C)',c:'#1a1a1a',bg:'#f0f0f0'},
+  ];
+  document.getElementById('r-badges').innerHTML=bMeta.map(b=>
+    `<span class="r-badge" style="color:${b.c};border-color:${b.c};background:${b.bg}">${b.t}</span>`
+  ).join('');
+
+  // axis bars
+  document.getElementById('ab-list').innerHTML=['R','E','D','B'].map(a=>{
+    const m=AXIS_META[a], pct=Math.round(sc[a]/20*100);
+    return `<div>
+      <div style="text-align:center;margin-bottom:3px;font-size:12px;font-weight:700;color:${m.color}">${m.name}</div>
+      <div class="ab-ends"><span class="ab-end">${m.low}</span><span class="ab-end">${m.high}</span></div>
+      <div class="ab-track"><div class="ab-fill" style="width:0%;background:${m.color}" data-w="${pct}"></div></div>
+      <div class="ab-pcts"><span style="color:${m.color}">${100-pct}%</span><span style="color:${m.color}">${pct}%</span></div>
+    </div>`;
+  }).join('');
+  // animate bars
+  setTimeout(()=>{
+    document.querySelectorAll('.ab-fill').forEach(el=>{el.style.width=el.dataset.w+'%';});
+  },100);
+
+  // radar
+  drawRadar(sc);
+  // wave
+  drawWave(sc);
+
+  // tips
+  const icons=['💡','🌿','⏰','✨'];
+  document.getElementById('tip-list').innerHTML=type.tips.map((t,i)=>`
+    <div class="tip-row">
+      <div class="tip-ico">${icons[i]}</div>
+      <p class="tip-txt">${t}</p>
+    </div>`).join('');
+}
+
+function drawRadar(sc){
+  const cv=document.getElementById('c-radar');
+  const ctx=cv.getContext('2d');
+  const W=260,H=220,cx=130,cy=115,r=74;
+  ctx.clearRect(0,0,W,H);
+  const axes=['R','E','D','B'];
+  const labels=['수면 리듬','수면 효율','주간 기능','수면 장벽'];
+  const colors=['#1a1a1a','#555555','#888888','#aaaaaa'];
+  const n=4;
+  const ang=i=>-Math.PI/2+i*(2*Math.PI/n);
+
+  // rings
+  for(let g=1;g<=4;g++){
+    ctx.beginPath();
+    for(let i=0;i<n;i++){
+      const x=cx+r*(g/4)*Math.cos(ang(i)), y=cy+r*(g/4)*Math.sin(ang(i));
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle='rgba(0,0,0,0.07)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.fillStyle='rgba(0,0,0,0.04)'; ctx.fill();
+  }
+  // spokes
+  for(let i=0;i<n;i++){
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+r*Math.cos(ang(i)),cy+r*Math.sin(ang(i)));
+    ctx.strokeStyle='rgba(0,0,0,0.08)'; ctx.lineWidth=1; ctx.stroke();
+  }
+  // data
+  ctx.beginPath();
+  axes.forEach((a,i)=>{
+    const v=sc[a]/20, x=cx+r*v*Math.cos(ang(i)), y=cy+r*v*Math.sin(ang(i));
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.closePath();
+  ctx.fillStyle='rgba(0,0,0,0.07)'; ctx.fill();
+  ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=2; ctx.stroke();
+  // dots + labels
+  axes.forEach((a,i)=>{
+    const v=sc[a]/20, x=cx+r*v*Math.cos(ang(i)), y=cy+r*v*Math.sin(ang(i));
+    ctx.beginPath(); ctx.arc(x,y,5,0,2*Math.PI);
+    ctx.fillStyle=colors[i]; ctx.fill();
+    ctx.strokeStyle='white'; ctx.lineWidth=2; ctx.stroke();
+    // label
+    const lx=cx+(r+18)*Math.cos(ang(i)), ly=cy+(r+18)*Math.sin(ang(i));
+    ctx.font='bold 10px "Noto Sans KR",sans-serif';
+    ctx.textAlign='center'; ctx.fillStyle=colors[i];
+    ctx.fillText(labels[i],lx,ly+4);
+  });
+}
+
+function drawWave(sc){
+  const cv=document.getElementById('c-wave');
+  if(!cv) return;
+  const ctx=cv.getContext('2d');
+  const W=400,H=88;
+  ctx.clearRect(0,0,W,H);
+  const late=sc.R>=11, frag=sc.E>=11;
+  const sx=late?85:30, ex=late?370:315, mx=(sx+ex)/2;
+
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(0,0,0,0.12)');
+  grad.addColorStop(1,'rgba(0,0,0,0.01)');
+
+  function path(){
+    ctx.moveTo(0,H*.22);
+    ctx.bezierCurveTo(sx-20,H*.22,sx,H*.84,sx+8,H*.84);
+    if(frag){
+      ctx.bezierCurveTo(sx+36,H*.94,mx-28,H*.9,mx-8,H*.72);
+      ctx.lineTo(mx,H*.28); ctx.lineTo(mx+8,H*.68);
+      ctx.bezierCurveTo(mx+28,H*.92,ex-36,H*.94,ex-8,H*.84);
+    } else {
+      ctx.bezierCurveTo(sx+28,H*.96,mx-18,H*.98,mx,H*.98);
+      ctx.bezierCurveTo(mx+18,H*.98,ex-28,H*.96,ex-8,H*.84);
+    }
+    ctx.bezierCurveTo(ex+10,H*.22,W-10,H*.22,W,H*.22);
+  }
+
+  ctx.beginPath(); path();
+  ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath();
+  ctx.fillStyle=grad; ctx.fill();
+
+  ctx.beginPath(); path();
+  ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=2; ctx.stroke();
+
+  const wl=document.getElementById('wave-labels');
+  wl.innerHTML=`<span class="wave-lbl">취침 ${late?'1~2시':'23~24시'}경</span>
+    <span class="wave-lbl">${frag?'⚠ 중간 각성':'✓ 안정 수면'}</span>
+    <span class="wave-lbl">기상 ${late?'9~10시':'6~7시'}경</span>`;
+}
+
+function copyLink(){
+  navigator.clipboard?.writeText(location.href)
+    .then(()=>alert('링크가 복사되었습니다!'))
+    .catch(()=>alert('공유 링크: '+location.href));
+}
+</script>
+</body>
+</html>
