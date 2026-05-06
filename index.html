@@ -101,7 +101,7 @@ body { background:var(--bg); color:var(--text); font-family:'Noto Sans KR',sans-
 .l-row{display:flex;align-items:center;}
 .l-line{flex:1;height:1.5px;background:var(--border);}
 .l-btn {
-  border-radius:50%; border:2px solid #ccc8e8; background:white;
+  border-radius:50%; border:2px solid #cccccc; background:white;
   cursor:pointer; flex-shrink:0; position:relative;
   transition:all .15s; display:flex; align-items:center; justify-content:center;
 }
@@ -290,10 +290,7 @@ body { background:var(--bg); color:var(--text); font-family:'Noto Sans KR',sans-
   </div>
 
   <div class="r-wrap">
-    <div class="r-card" style="margin-top:20px">
-      <span class="r-card-lbl">4축 수면 프로필</span>
-      <canvas id="c-radar" width="260" height="220" style="display:block;margin:0 auto"></canvas>
-    </div>
+
 
     <div class="r-card">
       <span class="r-card-lbl">축별 상세 분석</span>
@@ -350,10 +347,10 @@ const QS = [
 ];
 
 const AXIS_META = {
-  R:{name:'수면 리듬',low:'아침형 (E)',high:'저녁형 (L)',color:'#1a1a1a',light:'#f0f0f0'},
-  E:{name:'수면 효율',low:'안정형 (S)',high:'분절형 (F)',color:'#1a1a1a',light:'#f0f0f0'},
-  D:{name:'주간 기능',low:'각성형 (A)',high:'졸림형 (D)',color:'#1a1a1a',light:'#f0f0f0'},
-  B:{name:'수면 장벽',low:'진입 용이 (C)',high:'진입 어려움 (B)',color:'#1a1a1a',light:'#f0f0f0'},
+  R:{name:'수면 리듬',low:'아침형',high:'저녁형',color:'#1a1a1a',light:'#f0f0f0'},
+  E:{name:'수면 효율',low:'안정형',high:'분절형',color:'#1a1a1a',light:'#f0f0f0'},
+  D:{name:'주간 기능',low:'각성형',high:'졸림형',color:'#1a1a1a',light:'#f0f0f0'},
+  B:{name:'수면 장벽',low:'진입 용이',high:'진입 어려움',color:'#1a1a1a',light:'#f0f0f0'},
 };
 
 const PAGE_AXIS = ['R','E','D','B'];
@@ -417,7 +414,6 @@ function renderPage() {
   for(let i=s;i<s+5;i++){
     html+=`<div class="qc ${answers[i]!==null?'answered':''}" id="qc-${i}">
       <div class="qc-top">
-        <div class="qc-num">Q${i+1}</div>
         <p class="qc-txt">${QS[i].t}</p>
       </div>
       <div class="qc-likert">
@@ -473,6 +469,29 @@ function nextPage(){
 }
 function prevPage(){if(page===0)return;page--;renderPage();window.scrollTo({top:0,behavior:'smooth'});}
 
+/* ─── WEBHOOK ─── */
+const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyD4g91n9AAP5Yl2GIKI-AlHzcLrFsSHGDckbYFz9_VT2SE4SaqrHZuebg8ksuWQIOeAw/exec';
+
+function sendToSheets(code, typeName, sc, rawAnswers) {
+  if (!WEBHOOK_URL || WEBHOOK_URL === 'YOUR_APPS_SCRIPT_URL_HERE') return;
+  const payload = {
+    timestamp: new Date().toISOString(),
+    type_code: code,
+    type_name: typeName,
+    score_R: sc.R,
+    score_E: sc.E,
+    score_D: sc.D,
+    score_B: sc.B,
+    ...Object.fromEntries(rawAnswers.map((v,i) => [`Q${i+1}`, 4-v]))
+  };
+  fetch(WEBHOOK_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).catch(()=>{}); // 실패해도 UI에 영향 없음
+}
+
 /* ─── CALC ─── */
 function calcResult(){
   showScreen('loading');
@@ -481,6 +500,7 @@ function calcResult(){
     QS.forEach((q,i)=>{if(answers[i]!==null) sc[q.ax]+=(4-answers[i]);});
     const code=(sc.R>=11?'L':'E')+(sc.E>=11?'F':'S')+(sc.D>=11?'D':'A')+(sc.B>=11?'B':'C');
     const type=TYPES[code]||TYPES['LSAC'];
+    sendToSheets(code, type.name, sc, answers); // 구글 시트로 전송
     buildResult(type,code,sc);
     showScreen('result');
   },1600);
@@ -494,10 +514,10 @@ function buildResult(type,code,sc){
   document.getElementById('r-desc').textContent=type.desc;
 
   const bMeta=[
-    {ax:'R',t:sc.R>=11?'저녁형 (L)':'아침형 (E)',c:'#1a1a1a',bg:'#f0f0f0'},
-    {ax:'E',t:sc.E>=11?'분절형 (F)':'안정형 (S)',c:'#1a1a1a',bg:'#f0f0f0'},
-    {ax:'D',t:sc.D>=11?'졸림형 (D)':'각성형 (A)',c:'#1a1a1a',bg:'#f0f0f0'},
-    {ax:'B',t:sc.B>=11?'장벽 있음 (B)':'진입 용이 (C)',c:'#1a1a1a',bg:'#f0f0f0'},
+    {ax:'R',t:sc.R>=11?'저녁형':'아침형',c:'#1a1a1a',bg:'#f0f0f0'},
+    {ax:'E',t:sc.E>=11?'분절형':'안정형',c:'#1a1a1a',bg:'#f0f0f0'},
+    {ax:'D',t:sc.D>=11?'졸림형':'각성형',c:'#1a1a1a',bg:'#f0f0f0'},
+    {ax:'B',t:sc.B>=11?'장벽 있음':'진입 용이',c:'#1a1a1a',bg:'#f0f0f0'},
   ];
   document.getElementById('r-badges').innerHTML=bMeta.map(b=>
     `<span class="r-badge" style="color:${b.c};border-color:${b.c};background:${b.bg}">${b.t}</span>`
@@ -518,8 +538,7 @@ function buildResult(type,code,sc){
     document.querySelectorAll('.ab-fill').forEach(el=>{el.style.width=el.dataset.w+'%';});
   },100);
 
-  // radar
-  drawRadar(sc);
+
   // wave
   drawWave(sc);
 
