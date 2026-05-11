@@ -279,6 +279,38 @@ body { background:var(--bg); color:var(--text); font-family:'MaenbalCheongchun',
   background:var(--accent); border-color:var(--accent); color:white;
 }
 .privacy-check-label { font-size:13px; color:var(--text2); font-weight:500; }
+
+/* gender */
+.gender-btn {
+  flex:1; padding:11px; border-radius:10px; font-size:13px; font-weight:600;
+  border:1.5px solid var(--border); background:var(--bg); color:var(--text2);
+  cursor:pointer; font-family:'MaenbalCheongchun',sans-serif; transition:all .15s;
+}
+.gender-btn.sel { background:var(--accent); border-color:var(--accent); color:white; }
+
+/* ── DEMOGRAPHICS ── */
+#screen-demo {
+  justify-content:center; padding:60px 24px;
+  background:linear-gradient(155deg,#f2f2f2 0%,#ebebeb 45%,#f5f5f5 100%);
+}
+.demo-inner { max-width:400px; width:100%; }
+.demo-title {
+  font-family:'MaenbalCheongchun',sans-serif;
+  font-size:22px; font-weight:900; color:var(--text);
+  margin-bottom:6px;
+}
+.demo-sub { font-size:13px; color:var(--text3); margin-bottom:28px; }
+.demo-section { margin-bottom:22px; }
+.demo-label { font-size:13px; font-weight:700; color:var(--text2); margin-bottom:10px; display:block; }
+.demo-btns { display:flex; gap:8px; flex-wrap:wrap; }
+.btn-demo-next {
+  width:100%; padding:16px; border-radius:14px; font-size:15px; font-weight:700;
+  border:none; background:#cccccc; color:white; cursor:pointer;
+  font-family:'MaenbalCheongchun',sans-serif; transition:all .2s;
+  pointer-events:none; margin-top:8px;
+}
+.btn-demo-next.on { background:var(--accent); pointer-events:all; box-shadow:0 4px 16px rgba(0,0,0,.15); }
+.btn-demo-next.on:hover { background:#111; }
 </style>
 </head>
 <body>
@@ -296,8 +328,35 @@ body { background:var(--bg); color:var(--text); font-family:'MaenbalCheongchun',
       <span class="i-tag d">☀️ 주간 기능</span>
       <span class="i-tag b">🚧 수면 장벽</span>
     </div>
-    <button class="btn-start" onclick="startQuiz()">테스트 시작하기 →</button>
+    <button class="btn-start" onclick="showScreen('demo')">테스트 시작하기 →</button>
     <p class="intro-note">본 테스트는 의학적 진단을 대체하지 않습니다.</p>
+  </div>
+</div>
+
+<!-- DEMOGRAPHICS -->
+<div class="screen" id="screen-demo">
+  <div class="demo-inner">
+    <p class="demo-sub">테스트 시작 전</p>
+    <h2 class="demo-title">간단한 정보를 알려주세요</h2>
+    <div class="demo-section">
+      <span class="demo-label">연령대</span>
+      <div class="demo-btns">
+        <button class="gender-btn" id="age-10" onclick="selectAge('10대')">10대</button>
+        <button class="gender-btn" id="age-20" onclick="selectAge('20대')">20대</button>
+        <button class="gender-btn" id="age-30" onclick="selectAge('30대')">30대</button>
+        <button class="gender-btn" id="age-40" onclick="selectAge('40대')">40대</button>
+        <button class="gender-btn" id="age-50" onclick="selectAge('50대')">50대</button>
+        <button class="gender-btn" id="age-60" onclick="selectAge('60대 이상')">60대 이상</button>
+      </div>
+    </div>
+    <div class="demo-section">
+      <span class="demo-label">성별</span>
+      <div class="demo-btns">
+        <button class="gender-btn" id="gender-male" onclick="selectGender('남성')">남성</button>
+        <button class="gender-btn" id="gender-female" onclick="selectGender('여성')">여성</button>
+      </div>
+    </div>
+    <button class="btn-demo-next" id="btn-demo-next" onclick="startQuiz()">테스트 시작하기 →</button>
   </div>
 </div>
 
@@ -438,7 +497,9 @@ const TYPES = {
 /* ─── STATE ─── */
 let page = 0;
 let answers = new Array(20).fill(null);
-let userInfo = { nickname:'', email:'' };
+let userInfo = { nickname:'', email:'', age:'', gender:'' };
+let selectedGender = '';
+let selectedAge = '';
 
 /* ─── SCREENS ─── */
 function showScreen(id) {
@@ -449,7 +510,7 @@ function showScreen(id) {
   window.scrollTo(0,0);
 }
 function startQuiz(){page=0;showScreen('quiz');renderPage();}
-function retry(){page=0;answers=new Array(20).fill(null);userInfo={nickname:'',email:''};showScreen('intro');}
+function retry(){page=0;answers=new Array(20).fill(null);userInfo={nickname:'',email:'',age:'',gender:''};selectedGender='';selectedAge='';showScreen('intro');}
 
 /* ─── QUIZ ─── */
 function renderPage() {
@@ -561,6 +622,33 @@ function refreshNextBtn(){
   btn.textContent=page===3?'다음 →':page===4?'결과 보기 →':'다음 →';
 }
 
+function selectGender(g){
+  selectedGender=g;
+  ['남성','여성'].forEach(v=>{
+    const id={남성:'gender-male',여성:'gender-female'}[v];
+    document.getElementById(id)?.classList.toggle('sel', v===g);
+  });
+  refreshDemoBtn();
+  refreshInfoBtn();
+}
+
+function selectAge(a){
+  selectedAge=a;
+  ['10대','20대','30대','40대','50대','60대 이상'].forEach(v=>{
+    const id={'10대':'age-10','20대':'age-20','30대':'age-30','40대':'age-40','50대':'age-50','60대 이상':'age-60'}[v];
+    document.getElementById(id)?.classList.toggle('sel', v===a);
+  });
+  refreshDemoBtn();
+  refreshInfoBtn();
+}
+
+function refreshDemoBtn(){
+  const btn=document.getElementById('btn-demo-next');
+  if(!btn) return;
+  const done=selectedAge!=='' && selectedGender!=='';
+  btn.classList.toggle('on', done);
+}
+
 function refreshInfoBtn(){
   const nickname=(document.getElementById('input-nickname')?.value||'').trim();
   const email=(document.getElementById('input-email')?.value||'').trim();
@@ -593,8 +681,8 @@ function nextPage(){
     const email=(document.getElementById('input-email')?.value||'').trim();
     const emailValid=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     const privacy=document.getElementById('privacy-check')?.checked;
-    if(!nickname||!emailValid||!privacy) return;
-    userInfo={nickname,email};
+    if(!nickname||!emailValid||!selectedAge||!selectedGender||!privacy) return;
+    userInfo={nickname,email,age:selectedAge,gender:selectedGender};
     calcResult();
   }
 }
@@ -609,6 +697,8 @@ function sendToSheets(code, typeName, sc, rawAnswers) {
     timestamp: new Date().toISOString(),
     nickname: userInfo.nickname,
     email: userInfo.email,
+    age: userInfo.age,
+    gender: userInfo.gender,
     type_code: code,
     type_name: typeName,
     score_R: sc.R,
